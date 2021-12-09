@@ -1,22 +1,13 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 #include <SFML/Window.hpp>
-#include <iostream>
-#include <functional>
-#include <math.h>
-#include <float.h>
-#include <vector>
-#include <set>
-#include <string.h>
-#include <string>
-#include <sstream>
+#include <bits/stdc++.h>
 using namespace std;
 using namespace sf;
-#define num 60 //number of cells in a row
-
-//--------Dijkstra--------
-vector<pair<int, int>> pathD; //Shortest pathD
-bool sptSet[num][num];        //explored cells
+#define num 60
+//Dijsktra Algorithm
+vector<pair<int, int>> pathD;
+bool sptSet[num][num];
 void findmin(float dist[num][num], int &min_x, int &min_y)
 {
     float mini = FLT_MAX;
@@ -31,10 +22,10 @@ void findmin(float dist[num][num], int &min_x, int &min_y)
 }
 void findpath(pair<int, int> previous[num][num], float dist[num][num], int dest_x, int dest_y, int source_x, int source_y)
 {
-    cout << "\nLength of Dijkstra path is: " << dist[dest_x][dest_y] << endl;
+    int stop_x = dest_x, stop_y = dest_y;
     while (previous[dest_x][dest_y].first != source_x || previous[dest_x][dest_y].second != source_y)
-    {                                // both simultaneously equal to source coordinates
-        sf::sleep(milliseconds(10)); //delay shortest pathD
+    {
+        sf::sleep(milliseconds(10));
         cout << "Visiting x = " << previous[dest_x][dest_y].first << "  "
              << "and y = " << previous[dest_x][dest_y].second << endl;
         pathD.push_back(make_pair(previous[dest_x][dest_y].first, previous[dest_x][dest_y].second));
@@ -42,6 +33,7 @@ void findpath(pair<int, int> previous[num][num], float dist[num][num], int dest_
         dest_x = previous[save_x][save_y].first;
         dest_y = previous[save_x][save_y].second;
     }
+    cout << "\nLength of Dijkstra path is: " << dist[stop_x][stop_y] << endl;
 }
 void dijkstra(int source_x, int source_y, int dest_x, int dest_y, int grid[num][num])
 {
@@ -64,11 +56,11 @@ void dijkstra(int source_x, int source_y, int dest_x, int dest_y, int grid[num][
                 found = 1;
                 break;
             }
-            sf::sleep(milliseconds(1)); //delay exploration
-            int possibleX[] = {0, 0, 1, -1, 1, -1, -1, 1};
-            int possibleY[] = {1, -1, 0, 0, 1, 1, -1, -1};
+            sf::sleep(milliseconds(1));
+            int possibleX[] = {0, 1, 0, -1, 0};
+            int possibleY[] = {1, 0, 0, 0, -1};
 
-            for (int i = 0; i < 8; ++i)
+            for (int i = 0; i < 5; ++i)
             {
                 int newRow = min_x + possibleX[i];
                 int newCol = min_y + possibleY[i];
@@ -83,7 +75,8 @@ void dijkstra(int source_x, int source_y, int dest_x, int dest_y, int grid[num][
 
     findpath(previous, dist, dest_x, dest_y, source_x, source_y);
 }
-//--------Astar--------
+
+//A-star algorithm
 typedef pair<int, int> Pair;
 typedef pair<float, pair<int, int>> Ppair;
 bool closedList[num][num];
@@ -105,21 +98,21 @@ float calculateHvalue(int row, int col, Pair dest)
 {
     int dx = abs(dest.first - row);
     int dy = abs(dest.second - col);
-    return abs(dx - dy) + sqrt(2) * min(dx, dy); //Diagonal D=1,D2=sqrt(2)
+    return abs(dx - dy) + sqrt(2) * min(dx, dy);
 }
 void tracePath(Pair source, Pair dest, cell cellDetails[][num])
 {
     int i = cellDetails[dest.first][dest.second].parent_x, j = cellDetails[dest.first][dest.second].parent_y;
     while (!(i == source.first && j == source.second))
     {
-        sf::sleep(milliseconds(10)); //delay shortest path
+        sf::sleep(milliseconds(10));
         cout << "Visiting x = " << i << "  "
              << "and y = " << j << endl;
         pathA.push_back(make_pair(i, j));
-        //pathSum=pathSum+cellDetails[i][j].g;
+
         int temp_i = i;
         int temp_j = j;
-        i = cellDetails[temp_i][temp_j].parent_x; //Solved substitution bug
+        i = cellDetails[temp_i][temp_j].parent_x;
         j = cellDetails[temp_i][temp_j].parent_y;
     }
     cout << "\nLength of A* path(g) is: " << cellDetails[dest.first][dest.second].g << endl;
@@ -136,22 +129,22 @@ void Astar(Pair source, Pair dest, int grid[][num])
     cellDetails[i][j].parent_y = j;
     openList.insert(make_pair(0.0, make_pair(i, j)));
     bool destFound = false;
-    int possibleX[] = {0, 0, 1, -1, 1, -1, -1, 1};
-    int possibleY[] = {1, -1, 0, 0, 1, 1, -1, -1};
+    int possibleX[] = {0, 0, 1, -1};
+    int possibleY[] = {1, -1, 0, 0};
     while (!openList.empty())
     {
         Ppair p = *openList.begin();
         openList.erase(openList.begin());
         int i = p.second.first, j = p.second.second;
         closedList[i][j] = true;
-        sf::sleep(milliseconds(1)); //delay exploration
+        sf::sleep(milliseconds(1));
         if (isDestination(i, j, dest) == true)
         {
             cout << "Destination Found\n";
             destFound = true;
-            break; //out of while loop
+            break;
         }
-        for (int k = 0; k < 8; ++k)
+        for (int k = 0; k < 3; ++k)
         {
             int newRow = i + possibleX[k];
             int newCol = j + possibleY[k];
@@ -164,7 +157,7 @@ void Astar(Pair source, Pair dest, int grid[][num])
                 successor.parent_x = i;
                 successor.parent_y = j;
                 if (cellDetails[newRow][newCol].g > successor.g)
-                { //Not in openList or bigger 'g' in openList
+                {
                     cellDetails[newRow][newCol] = successor;
                     openList.insert(make_pair(successor.f, make_pair(newRow, newCol)));
                 }
@@ -176,11 +169,11 @@ void Astar(Pair source, Pair dest, int grid[][num])
     else
         tracePath(source, dest, cellDetails);
 }
-//--------main()--------
+
 int main()
 {
-    int filled[num][num]; //whether cell is colored
-    int grid[60][60];     //map with obstacle
+    int filled[num][num];
+    int grid[60][60];
     for (int i = 0; i < 60; i++)
         for (int j = 0; j < 60; j++)
         {
@@ -192,48 +185,47 @@ int main()
     for (int i = 0; i < num; i++)
         for (int j = 0; j < num; j++)
         {
-            sptSet[i][j] = false; //dijkstra all unexplored
-            filled[i][j] = 0;     //all uncolored
+            sptSet[i][j] = false;
+            filled[i][j] = 0;
         }
-    memset(closedList, false, sizeof(closedList));            //Astar all unexplored
-    int source_x = 2, source_y = 2, dest_x = 50, dest_y = 56; //Origin(2,3)->Goal(50,56)
+    memset(closedList, false, sizeof(closedList));
+    int source_x = 10, source_y = 10, dest_x = 55, dest_y = 50;
     Thread threadD(std::bind(&dijkstra, source_x, source_y, dest_x, dest_y, grid));
     Thread threadA(std::bind(&Astar, make_pair(source_x, source_y), make_pair(dest_x, dest_y), grid));
-    RenderWindow window(VideoMode(800, 600), "Grid");
-    // // Text
+    RenderWindow window(VideoMode(800, 600), "Pathfinding Visualizer");
+
     sf::Font font;
     font.loadFromFile("arial.ttf");
     sf::Text text1("DIJKSTRA", font, 15);
     sf::Text text2("A*", font, 24);
 
-    // Shapes
-    RectangleShape buttonStartD(Vector2f(75, 25)); //button dijkstra
+    RectangleShape buttonStartD(Vector2f(75, 25));
     buttonStartD.setFillColor(Color::Green);
-    RectangleShape buttonStartA(Vector2f(75, 25)); //button Astar
+    RectangleShape buttonStartA(Vector2f(75, 25));
     buttonStartA.setFillColor(Color::Magenta);
 
-    RectangleShape rectangle(Vector2f(10, 10)); //default box :White
-    rectangle.setFillColor(Color::White);
-    RectangleShape brectangle(Vector2f(10, 10)); //Black box
-    brectangle.setFillColor(Color::Black);
-    RectangleShape grectangle(Vector2f(10, 10)); //Green
-    grectangle.setFillColor(Color::Green);
-    grectangle.setOutlineThickness(2);
-    grectangle.setOutlineColor(Color::Red);
-    RectangleShape mrectangle(Vector2f(10, 10)); //Magenta
-    mrectangle.setFillColor(Color::Magenta);
-    mrectangle.setOutlineThickness(2);
-    mrectangle.setOutlineColor(Color::Red);
-    RectangleShape blueRectangle(Vector2f(10, 10));
-    blueRectangle.setFillColor(Color::Blue);
-    blueRectangle.setOutlineThickness(2);
-    blueRectangle.setOutlineColor(Color::Black);
-    RectangleShape rrectangle(Vector2f(10, 10));
-    rrectangle.setFillColor(Color::Red);
-    rrectangle.setOutlineThickness(2);
-    rrectangle.setOutlineColor(Color::Red);
-    RectangleShape yrectangle(Vector2f(10, 10));
-    yrectangle.setFillColor(Color::Yellow);
+    RectangleShape defaultCell(Vector2f(10, 10));
+    defaultCell.setFillColor(Color::White);
+    RectangleShape obstacleCell(Vector2f(10, 10));
+    obstacleCell.setFillColor(Color::Black);
+    RectangleShape pathCellA(Vector2f(10, 10));
+    pathCellA.setFillColor(Color::Blue);
+    pathCellA.setOutlineThickness(2);
+    pathCellA.setOutlineColor(Color::Black);
+    RectangleShape pathCellD(Vector2f(10, 10));
+    pathCellD.setFillColor(Color::Blue);
+    pathCellD.setOutlineThickness(2);
+    pathCellD.setOutlineColor(Color::Black);
+    RectangleShape startCell(Vector2f(10, 10));
+    startCell.setFillColor(Color::Green);
+    startCell.setOutlineThickness(2);
+    startCell.setOutlineColor(Color::Black);
+    RectangleShape destinationCell(Vector2f(10, 10));
+    destinationCell.setFillColor(Color::Red);
+    destinationCell.setOutlineThickness(2);
+    destinationCell.setOutlineColor(Color::Black);
+    RectangleShape exploredCell(Vector2f(10, 10));
+    exploredCell.setFillColor(Color::Cyan);
     // Display
     while (window.isOpen())
     {
@@ -248,7 +240,7 @@ int main()
             {
                 int X = event.mouseButton.x;
                 int Y = event.mouseButton.y;
-                int row = Y / 10; //Reversed notion of row & column
+                int row = Y / 10;
                 int col = X / 10;
                 if (grid[row][col] == 0 && row < 60 && col < 60)
                     grid[row][col] = 1;
@@ -268,23 +260,23 @@ int main()
         }
         window.clear();
         buttonStartD.setPosition(600, 0);
-        window.draw(buttonStartD); //Dijkstra launch
+        window.draw(buttonStartD);
         buttonStartA.setPosition(600, 75);
-        window.draw(buttonStartA); //Astar launch
-        text1.setPosition(600, 0); //Dijkstra text
+        window.draw(buttonStartA);
+        text1.setPosition(600, 0);
         text2.setPosition(630, 75);
         window.draw(text1);
         window.draw(text2);
         stringstream ss1, ss2;
-        ss1 << pathD.size(); //int2string
+        ss1 << pathD.size();
         ss2 << pathA.size();
 
         if (!pathA.empty())
         {
             for (int i = 0; i < int(pathA.size()); i++)
             {
-                mrectangle.setPosition(pathA[i].second * 10, pathA[i].first * 10); //Reversed notion of row & column
-                window.draw(mrectangle);                                           //final pathA
+                pathCellA.setPosition(pathA[i].second * 10, pathA[i].first * 10);
+                window.draw(pathCellA);
                 filled[pathA[i].first][pathA[i].second] = 1;
             }
         }
@@ -292,47 +284,47 @@ int main()
         {
             for (int i = 0; i < int(pathD.size()); i++)
             {
-                grectangle.setPosition(pathD[i].second * 10, pathD[i].first * 10); //Reversed notion of row & column
-                window.draw(grectangle);                                           //final pathD
+                pathCellD.setPosition(pathD[i].second * 10, pathD[i].first * 10);
+                window.draw(pathCellD);
                 filled[pathD[i].first][pathD[i].second] = 1;
             }
         }
-        blueRectangle.setPosition(source_y * 10, source_x * 10);
-        window.draw(blueRectangle); //source
+        startCell.setPosition(source_y * 10, source_x * 10);
+        window.draw(startCell);
         filled[source_x][source_y] = 1;
-        rrectangle.setPosition(dest_y * 10, dest_x * 10);
-        window.draw(rrectangle); //destination
+        destinationCell.setPosition(dest_y * 10, dest_x * 10);
+        window.draw(destinationCell);
         filled[dest_x][dest_y] = 1;
         for (int i = 0; i <= 590; i += 10)
             for (int j = 0; j <= 590; j += 10)
             {
                 if (grid[i / 10][j / 10] == 0)
                 {
-                    brectangle.setOutlineThickness(2);
-                    brectangle.setOutlineColor(Color::Red);
-                    brectangle.setPosition(j, i);
-                    window.draw(brectangle); //User's obstacle
+                    obstacleCell.setOutlineThickness(2);
+                    obstacleCell.setOutlineColor(Color::Black);
+                    obstacleCell.setPosition(j, i);
+                    window.draw(obstacleCell);
                 }
                 if (sptSet[i / 10][j / 10] == true && filled[i / 10][j / 10] == 0)
                 {
-                    yrectangle.setOutlineThickness(2);
-                    yrectangle.setOutlineColor(Color::Red);
-                    yrectangle.setPosition(j, i);
-                    window.draw(yrectangle); // Explored Cells by dijkstra
+                    exploredCell.setOutlineThickness(2);
+                    exploredCell.setOutlineColor(Color::Black);
+                    exploredCell.setPosition(j, i);
+                    window.draw(exploredCell);
                 }
                 if (closedList[i / 10][j / 10] == true && filled[i / 10][j / 10] == 0)
                 {
-                    yrectangle.setOutlineThickness(2);
-                    yrectangle.setOutlineColor(Color::Red);
-                    yrectangle.setPosition(j, i);
-                    window.draw(yrectangle); // Explored  Cells by A*
+                    exploredCell.setOutlineThickness(2);
+                    exploredCell.setOutlineColor(Color::Black);
+                    exploredCell.setPosition(j, i);
+                    window.draw(exploredCell);
                 }
                 if (grid[i / 10][j / 10] == 1 && sptSet[i / 10][j / 10] == false && closedList[i / 10][j / 10] == false && filled[i / 10][j / 10] == 0)
-                { //not in dijkstra & A*
-                    rectangle.setOutlineThickness(2);
-                    rectangle.setOutlineColor(Color::Red);
-                    rectangle.setPosition(j, i);
-                    window.draw(rectangle); //default white cells
+                {
+                    defaultCell.setOutlineThickness(2);
+                    defaultCell.setOutlineColor(Color::Black);
+                    defaultCell.setPosition(j, i);
+                    window.draw(defaultCell);
                 }
             }
         window.display();
